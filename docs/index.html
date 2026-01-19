@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Orchestration Flow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-in {
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .expand-details {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .chevron {
+            transition: transform 0.2s;
+        }
+
+        .chevron.rotated {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body class="bg-white">
+    <div class="min-h-screen p-8">
+        <div class="max-w-5xl mx-auto">
+            <!-- Header -->
+            <div class="mb-12">
+                <h1 class="text-4xl font-bold text-slate-900 mb-2">Agent Orchestration Flow</h1>
+                <p class="text-lg text-slate-600">Sequential pipeline coordinated through a central handoff folder</p>
+            </div>
+
+            <!-- Central Handoff Folder -->
+            <div class="mb-12 p-8 border border-slate-200 rounded-lg bg-slate-50">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 bg-slate-900 rounded-lg flex items-center justify-center">
+                        <span class="text-white font-semibold text-xl">/</span>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-semibold text-slate-900">Handoff Folder</h2>
+                        <p class="text-sm text-slate-600">Central coordination point for all agents</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-2 mt-6">
+                    <div class="px-3 py-2 bg-slate-200 rounded text-sm font-mono text-slate-700">01-requirements.md</div>
+                    <div class="px-3 py-2 bg-slate-200 rounded text-sm font-mono text-slate-700">02-architecture.md</div>
+                    <div class="px-3 py-2 bg-slate-200 rounded text-sm font-mono text-slate-700">03-implementer.md</div>
+                    <div class="px-3 py-2 bg-slate-200 rounded text-sm font-mono text-slate-700">04-tester.md</div>
+                    <div class="px-3 py-2 bg-slate-200 rounded text-sm font-mono text-slate-700">05-reviewer.md</div>
+                </div>
+            </div>
+
+            <!-- Agents Flow -->
+            <div class="space-y-3" id="agentsContainer"></div>
+
+            <!-- ProjectManager Note -->
+            <div class="mt-12 p-6 border border-slate-200 rounded-lg bg-slate-50">
+                <h3 class="font-semibold text-slate-900 mb-2">ProjectManager Agent</h3>
+                <p class="text-sm text-slate-700 mb-3">
+                    Orchestrates the entire flow. Manages the handoff folder, calls agents in sequence, and ensures context preservation.
+                </p>
+                <ul class="space-y-1 text-sm text-slate-700">
+                    <li>• Creates and manages handoff folder structure</li>
+                    <li>• Invokes agents in correct sequence</li>
+                    <li>• Ensures each agent reads previous outputs</li>
+                    <li>• Generates final summary</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const agents = [
+            {
+                id: 1,
+                name: 'Researcher',
+                description: 'Gather Requirements',
+                input: 'Project brief',
+                output: '01-requirements.md',
+                steps: ['Read project brief', 'Gather requirements', 'Identify constraints', 'Document findings']
+            },
+            {
+                id: 2,
+                name: 'Architect',
+                description: 'Design System',
+                input: 'Requirements',
+                output: '02-architecture.md',
+                steps: ['Read requirements', 'Design system architecture', 'Define APIs', 'Document structure']
+            },
+            {
+                id: 3,
+                name: 'Implementer',
+                description: 'Write Code',
+                input: 'Architecture spec',
+                output: '03-implementer.md',
+                steps: ['Read architecture', 'Implement features', 'Follow patterns', 'Document code']
+            },
+            {
+                id: 4,
+                name: 'Tester',
+                description: 'Quality Check',
+                input: 'Implementation',
+                output: '04-tester.md',
+                steps: ['Run tests', 'Verify functionality', 'Check edge cases', 'Document results']
+            },
+            {
+                id: 5,
+                name: 'Reviewer',
+                description: 'Code Review',
+                input: 'Test results',
+                output: '05-reviewer.md',
+                steps: ['Review code quality', 'Check standards', 'Suggest improvements', 'Document feedback']
+            }
+        ];
+
+        let expandedAgent = null;
+
+        function renderAgents() {
+            const container = document.getElementById('agentsContainer');
+            container.innerHTML = '';
+
+            agents.forEach((agent, index) => {
+                const agentDiv = document.createElement('div');
+                agentDiv.className = 'animate-in';
+                agentDiv.style.animationDelay = `${index * 50}ms`;
+
+                // Main agent card
+                const card = document.createElement('button');
+                card.className = 'w-full text-left p-6 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors group';
+                card.onclick = () => toggleAgent(agent.id);
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-2">
+                                <div class="w-8 h-8 bg-slate-900 text-white rounded flex items-center justify-center font-semibold text-sm">
+                                    ${agent.id}
+                                </div>
+                                <h3 class="text-lg font-semibold text-slate-900">${agent.name}</h3>
+                                <span class="text-sm text-slate-500">${agent.description}</span>
+                            </div>
+                            
+                            <div class="mt-3 grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Input</span>
+                                    <div class="mt-1 text-slate-700 font-mono text-xs px-2 py-1 bg-slate-100 rounded w-fit">
+                                        ${agent.input}
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Output</span>
+                                    <div class="mt-1 text-slate-700 font-mono text-xs px-2 py-1 bg-slate-100 rounded w-fit">
+                                        ${agent.output}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <svg class="w-5 h-5 text-slate-400 flex-shrink-0 chevron ${expandedAgent === agent.id ? 'rotated' : ''}" id="chevron-${agent.id}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                        </svg>
+                    </div>
+                `;
+
+                agentDiv.appendChild(card);
+
+                // Expanded details
+                if (expandedAgent === agent.id) {
+                    const detailsDiv = document.createElement('div');
+                    detailsDiv.className = 'expand-details ml-0 mt-2 p-4 border border-slate-200 border-t-0 rounded-b-lg bg-slate-50';
+                    detailsDiv.innerHTML = `
+                        <h4 class="text-sm font-semibold text-slate-900 mb-3">Process</h4>
+                        <ol class="space-y-2">
+                            ${agent.steps.map((step, i) => `
+                                <li class="flex gap-3 text-sm text-slate-700">
+                                    <span class="font-semibold text-slate-400 flex-shrink-0">${i + 1}.</span>
+                                    <span>${step}</span>
+                                </li>
+                            `).join('')}
+                        </ol>
+                    `;
+                    agentDiv.appendChild(detailsDiv);
+                }
+
+                // Arrow between agents
+                if (index < agents.length - 1) {
+                    const arrowDiv = document.createElement('div');
+                    arrowDiv.className = 'flex justify-center py-2';
+                    arrowDiv.innerHTML = '<div class="h-6 border-l-2 border-slate-300"></div>';
+                    agentDiv.appendChild(arrowDiv);
+                }
+
+                container.appendChild(agentDiv);
+            });
+        }
+
+        function toggleAgent(agentId) {
+            expandedAgent = expandedAgent === agentId ? null : agentId;
+            renderAgents();
+        }
+
+        // Initial render
+        renderAgents();
+    </script>
+</body>
+</html>
